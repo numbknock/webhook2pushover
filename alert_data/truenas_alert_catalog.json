@@ -1,0 +1,674 @@
+[
+  {
+    "class_name": "QuotaWarningAlertClass",
+    "file": "quota.py",
+    "title": "Quota Exceeded on Dataset",
+    "severity": "WARNING",
+    "category": "STORAGE",
+    "text": "%(name)s exceeded on dataset %(dataset)s. Used %(used_fraction).2f%% (%(used)s of %(quota_value)s)."
+  },
+  {
+    "class_name": "QuotaCriticalAlertClass",
+    "file": "quota.py",
+    "title": "Critical Quota Exceeded on Dataset",
+    "severity": "CRITICAL",
+    "category": "STORAGE",
+    "text": "%(name)s exceeded on dataset %(dataset)s. Used %(used_fraction).2f%% (%(used)s of %(quota_value)s)."
+  },
+  {
+    "class_name": "TrueNASVerifyServiceChangeDetectionAlertClass",
+    "file": "truenas_verify.py",
+    "title": "TrueNAS Verify Service: Changes detected in root file system.",
+    "severity": "ERROR",
+    "category": "AUDIT",
+    "text": ""
+  },
+  {
+    "class_name": "SMBLegacyProtocolAlertClass",
+    "file": "smb.py",
+    "title": "SMB1 connections to TrueNAS server have been performed in last 24 hours",
+    "severity": "NOTICE",
+    "category": "SHARING",
+    "text": "The following clients have established SMB1 sessions: %(err)s."
+  },
+  {
+    "class_name": "NTLMv1AuthenticationAlertClass",
+    "file": "smb.py",
+    "title": "NTLMv1 authentication has been attempted in the last 24 hours",
+    "severity": "WARNING",
+    "category": "SHARING",
+    "text": "The following clients have attempted NTLMv1 authentication: %(err)s"
+  },
+  {
+    "class_name": "SMBPathAlertClass",
+    "file": "smb.py",
+    "title": "SMB share path has unresolvable issues",
+    "severity": "CRITICAL",
+    "category": "SHARING",
+    "text": "SMB shares have path-related configuration issues that may impact service stability: %(err)s"
+  },
+  {
+    "class_name": "SnapshotTotalCountAlertClass",
+    "file": "snapshot_count.py",
+    "title": "Too Many Snapshots Exist",
+    "severity": "WARNING",
+    "category": "STORAGE",
+    "text": ""
+  },
+  {
+    "class_name": "SnapshotCountAlertClass",
+    "file": "snapshot_count.py",
+    "title": "Too Many Snapshots Exist For Dataset",
+    "severity": "WARNING",
+    "category": "STORAGE",
+    "text": ""
+  },
+  {
+    "class_name": "SATADOMWearWarningAlertClass",
+    "file": "sata_dom_wear.py",
+    "title": "SATA DOM Lifetime: Less Than 20% Left",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "%(lifetime)d%% of lifetime left on SATA DOM %(disk)s."
+  },
+  {
+    "class_name": "SATADOMWearCriticalAlertClass",
+    "file": "sata_dom_wear.py",
+    "title": "SATA DOM Lifetime: Less Than 10% Left",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "%(lifetime)d%% of lifetime left on SATA DOM %(disk)s."
+  },
+  {
+    "class_name": "ISCSIPortalIPAlertClass",
+    "file": "iscsi.py",
+    "title": "IP Addresses Bound to an iSCSI Portal Were Not Found",
+    "severity": "WARNING",
+    "category": "SHARING",
+    "text": "These IP addresses are bound to an iSCSI Portal but not found: %s."
+  },
+  {
+    "class_name": "ISCSIAuthSecretInvalidCharAlertClass",
+    "file": "iscsi.py",
+    "title": "iSCSI Authorized Access has an invalid character",
+    "severity": "WARNING",
+    "category": "SHARING",
+    "text": ""
+  },
+  {
+    "class_name": "ISCSIAuthSecretWhitespaceAlertClass",
+    "file": "iscsi.py",
+    "title": "iSCSI Authorized Access has leading or trailing whitespace",
+    "severity": "WARNING",
+    "category": "SHARING",
+    "text": ""
+  },
+  {
+    "class_name": "FIPSMisconfigurationAlertClass",
+    "file": "fips.py",
+    "title": "FIPS misconfiguration",
+    "severity": "CRITICAL",
+    "category": "SECURITY",
+    "text": "FIPS is %(configuration)s, but FIPS provider is %(state)s."
+  },
+  {
+    "class_name": "EncryptedDatasetAlertClass",
+    "file": "datasets.py",
+    "title": "Unencrypted datasets detected within encrypted datasets",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": ""
+  },
+  {
+    "class_name": "DisksAreNotPresentOnStandbyNodeAlertClass",
+    "file": "failover_disks.py",
+    "title": null,
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": null
+  },
+  {
+    "class_name": "DisksAreNotPresentOnActiveNodeAlertClass",
+    "file": "failover_disks.py",
+    "title": null,
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": null
+  },
+  {
+    "class_name": "AuditServiceHealthAlertClass",
+    "file": "audit.py",
+    "title": "Audit Service Health Failure",
+    "severity": "ERROR",
+    "category": "AUDIT",
+    "text": "Failed to perform audit query: %(verrs)s"
+  },
+  {
+    "class_name": "ZpoolCapacityNoticeAlertClass",
+    "file": "zpool_capacity.py",
+    "title": "Pool Space Usage Is Above 85%",
+    "severity": "NOTICE",
+    "category": "STORAGE",
+    "text": "Space usage for pool"
+  },
+  {
+    "class_name": "ZpoolCapacityWarningAlertClass",
+    "file": "zpool_capacity.py",
+    "title": "Pool Space Usage Is Above 90%",
+    "severity": "WARNING",
+    "category": "STORAGE",
+    "text": "Space usage for pool"
+  },
+  {
+    "class_name": "ZpoolCapacityCriticalAlertClass",
+    "file": "zpool_capacity.py",
+    "title": "Pool Space Usage Is Above 95%",
+    "severity": "CRITICAL",
+    "category": "STORAGE",
+    "text": "Space usage for pool"
+  },
+  {
+    "class_name": "NetworkCardsMismatchOnStandbyNodeAlertClass",
+    "file": "failover_nics.py",
+    "title": null,
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": null
+  },
+  {
+    "class_name": "NetworkCardsMismatchOnActiveNodeAlertClass",
+    "file": "failover_nics.py",
+    "title": null,
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": null
+  },
+  {
+    "class_name": "CoreFilesArePresentAlertClass",
+    "file": "cores.py",
+    "title": "Core Files Detected",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "Core files for executables have been found in /var/db/system/cores/. Please open the shell, copy any core files present in /var/db/system/cores/  and then generate a system debug. Next, create a ticket at https://ixsystems.atlassian.net/  and attach the core files and debug. After creating the ticket, the core files can be removed  from the system by opening shell and entering  ."
+  },
+  {
+    "class_name": "SensorAlertClass",
+    "file": "sensors.py",
+    "title": "Sensor Value Is Outside of Working Range",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "Sensor %(name)s is %(relative)s %(level)s value: %(value)s %(event)s"
+  },
+  {
+    "class_name": "PowerSupplyAlertClass",
+    "file": "sensors.py",
+    "title": "Power Supply Error",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": ""
+  },
+  {
+    "class_name": "SyslogNgAlertClass",
+    "file": "syslog_ng.py",
+    "title": "syslog-ng Is Not Running",
+    "severity": "WARNING",
+    "category": "REPORTING",
+    "text": "%s"
+  },
+  {
+    "class_name": "SnapshotFailedAlertClass",
+    "file": "replication.py",
+    "title": "Snapshot Task Failed",
+    "severity": "CRITICAL",
+    "category": "TASKS",
+    "text": "Snapshot Task For Dataset \\"
+  },
+  {
+    "class_name": "ReplicationSuccessAlertClass",
+    "file": "replication.py",
+    "title": "Replication Succeeded",
+    "severity": "INFO",
+    "category": "TASKS",
+    "text": "Replication \\"
+  },
+  {
+    "class_name": "ReplicationFailedAlertClass",
+    "file": "replication.py",
+    "title": "Replication Failed",
+    "severity": "CRITICAL",
+    "category": "TASKS",
+    "text": "Replication \\"
+  },
+  {
+    "class_name": "JBOFRedfishCommAlertClass",
+    "file": "jbof.py",
+    "title": "Failed to Communicate with JBOF",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "JBOF:"
+  },
+  {
+    "class_name": "JBOFInvalidDataAlertClass",
+    "file": "jbof.py",
+    "title": "JBOF has invalid data",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "JBOF:"
+  },
+  {
+    "class_name": "JBOFElementWarningAlertClass",
+    "file": "jbof.py",
+    "title": "JBOF element non-critical",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "JBOF:"
+  },
+  {
+    "class_name": "JBOFElementCriticalAlertClass",
+    "file": "jbof.py",
+    "title": "JBOF element critical",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "JBOF:"
+  },
+  {
+    "class_name": "LDAPBindAlertClass",
+    "file": "ldap.py",
+    "title": "LDAP Bind Is Not Healthy",
+    "severity": "WARNING",
+    "category": "DIRECTORY_SERVICE",
+    "text": "%(ldaperr)s."
+  },
+  {
+    "class_name": "FailoverRemoteSystemInaccessibleAlertClass",
+    "file": "failover_remote_inaccessible.py",
+    "title": "Other Controller is Inaccessible",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "Other TrueNAS controller is inaccessible. Contact support. Incident ID: %s."
+  },
+  {
+    "class_name": "IPMISELSpaceLeftAlertClass",
+    "file": "ipmi_sel.py",
+    "title": "IPMI System Event Log Low Space Left",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "IPMI System Event Log low space left: %(free)s (%(used)s)."
+  },
+  {
+    "class_name": "AdminUserIsOverriddenAlertClass",
+    "file": "admin_user.py",
+    "title": "Admin User Is Overridden",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "NSS query results are different for the locally set up `%(username)s` user."
+  },
+  {
+    "class_name": "NoCriticalFailoverInterfaceFoundAlertClass",
+    "file": "failover_interfaces.py",
+    "title": "At Least 1 Network Interface Is Required To Be Marked Critical For Failover",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "At least 1 network interface is required to be marked critical for failover."
+  },
+  {
+    "class_name": "ScrubPausedAlertClass",
+    "file": "scrub_paused.py",
+    "title": "Scrub Is Paused",
+    "severity": "WARNING",
+    "category": "STORAGE",
+    "text": "Scrub for pool %r is paused for more than 8 hours."
+  },
+  {
+    "class_name": "LicenseAlertClass",
+    "file": "license_status.py",
+    "title": "TrueNAS License Issue",
+    "severity": "CRITICAL",
+    "category": "SYSTEM",
+    "text": "%s"
+  },
+  {
+    "class_name": "LicenseIsExpiringAlertClass",
+    "file": "license_status.py",
+    "title": "TrueNAS License Is Expiring",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "%s"
+  },
+  {
+    "class_name": "LicenseHasExpiredAlertClass",
+    "file": "license_status.py",
+    "title": "TrueNAS License Has Expired",
+    "severity": "CRITICAL",
+    "category": "SYSTEM",
+    "text": "%s"
+  },
+  {
+    "class_name": "USBStorageAlertClass",
+    "file": "usb_storage.py",
+    "title": "A USB Storage Device Has Been Connected to This System",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "A USB storage device %r has been connected to this system. Please remove that USB device to  prevent problems with system boot or HA failover."
+  },
+  {
+    "class_name": "TrueNASMiniBMCAlertClass",
+    "file": "legacy_mini_bmc.py",
+    "title": "Critical IPMI Firmware Update Available",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "A critical IPMI firmware update is available for this system. Please see  <a href=\\  target=\\ > ASRock Rack C2750D4I BMC Watchdog Issue</a> for details."
+  },
+  {
+    "class_name": "NVDIMMAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "There Is An Issue With NVDIMM",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "NVDIMM:"
+  },
+  {
+    "class_name": "NVDIMMESLifetimeWarningAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "NVDIMM Energy Source Lifetime Is Less Than 20%",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "NVDIMM Energy Source Remaining Lifetime for %(dev)s is %(value)d%%."
+  },
+  {
+    "class_name": "NVDIMMESLifetimeCriticalAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "NVDIMM Energy Source Lifetime Is Less Than 10%",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "NVDIMM Energy Source Remaining Lifetime for %(dev)s is %(value)d%%."
+  },
+  {
+    "class_name": "NVDIMMMemoryModLifetimeWarningAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "NVDIMM Memory Module Lifetime Is Less Than 20%",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "NVDIMM Memory Module Remaining Lifetime for %(dev)s is %(value)d%%."
+  },
+  {
+    "class_name": "NVDIMMMemoryModLifetimeCriticalAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "NVDIMM Memory Module Lifetime Is Less Than 10%",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "NVDIMM Memory Module Remaining Lifetime for %(dev)s is %(value)d%%."
+  },
+  {
+    "class_name": "NVDIMMInvalidFirmwareVersionAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "Invalid NVDIMM Firmware Version",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": null
+  },
+  {
+    "class_name": "NVDIMMRecommendedFirmwareVersionAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "NVDIMM Firmware Version Should Be Upgraded",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "NVDIMM:"
+  },
+  {
+    "class_name": "OldBiosVersionAlertClass",
+    "file": "mseries_nvdimm_and_bios.py",
+    "title": "Old BIOS Version",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": null
+  },
+  {
+    "class_name": "EnclosureUnhealthyAlertClass",
+    "file": "enclosure_status.py",
+    "title": "Enclosure Status Is Not Healthy",
+    "severity": "CRITICAL",
+    "category": "HARDWARE",
+    "text": "Enclosure (%s): Element"
+  },
+  {
+    "class_name": "EnclosureHealthyAlertClass",
+    "file": "enclosure_status.py",
+    "title": "Enclosure Status Is Healthy",
+    "severity": "INFO",
+    "category": "HARDWARE",
+    "text": "Enclosure (%s) is healthy."
+  },
+  {
+    "class_name": "FailoverInterfaceNotFoundAlertClass",
+    "file": "failover.py",
+    "title": "Failover Internal Interface Not Found",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "Failover internal interface not found. Contact support."
+  },
+  {
+    "class_name": "TrueNASVersionsMismatchAlertClass",
+    "file": "failover.py",
+    "title": "TrueNAS Software Versions Must Match Between Storage Controllers",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "TrueNAS software versions must match between storage controllers."
+  },
+  {
+    "class_name": "FailoverStatusCheckFailedAlertClass",
+    "file": "failover.py",
+    "title": "Failed to Check Failover Status with the Other Controller",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "Failed to check failover status with the other controller: %s."
+  },
+  {
+    "class_name": "FailoverFailedAlertClass",
+    "file": "failover.py",
+    "title": "Failover Failed",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "Failover failed. Check /var/log/failover.log on both controllers."
+  },
+  {
+    "class_name": "VRRPStatesDoNotAgreeAlertClass",
+    "file": "failover.py",
+    "title": "Controllers VRRP States Do Not Agree",
+    "severity": "CRITICAL",
+    "category": "HA",
+    "text": "Controllers VRRP states do not agree: %(error)s."
+  },
+  {
+    "class_name": "LocalAccountExpiringAlertClass",
+    "file": "security.py",
+    "title": "Local User Accounts Must Change Password",
+    "severity": "NOTICE",
+    "category": "SECURITY",
+    "text": "The following local user accounts must change passwords : %(accounts)s"
+  },
+  {
+    "class_name": "LocalAccountExpiredAlertClass",
+    "file": "security.py",
+    "title": "Local User Accounts Are Expired",
+    "severity": "WARNING",
+    "category": "SECURITY",
+    "text": "The following local user accounts have expired: %(accounts)s"
+  },
+  {
+    "class_name": "VolumeStatusAlertClass",
+    "file": "volume_status.py",
+    "title": "Pool Status Is Not Healthy",
+    "severity": "CRITICAL",
+    "category": "STORAGE",
+    "text": "Pool %(volume)s state is %(state)s: %(status)s%(devices)s"
+  },
+  {
+    "class_name": "BootPoolStatusAlertClass",
+    "file": "volume_status.py",
+    "title": "Boot Pool Is Not Healthy",
+    "severity": "CRITICAL",
+    "category": "SYSTEM",
+    "text": "Boot pool status is %(status)s: %(status_detail)s."
+  },
+  {
+    "class_name": "BONDInactivePortsAlertClass",
+    "file": "bond.py",
+    "title": "Ports are Not ACTIVE on BOND Interface",
+    "severity": "CRITICAL",
+    "category": "NETWORK",
+    "text": "These ports are not ACTIVE on BOND interface %(name)s: %(ports)s. Please check cabling and switch."
+  },
+  {
+    "class_name": "BONDNoActivePortsAlertClass",
+    "file": "bond.py",
+    "title": "There are No ACTIVE Ports on BOND Interface",
+    "severity": "CRITICAL",
+    "category": "NETWORK",
+    "text": "There are no ACTIVE ports on BOND interface %(name)s. Please check cabling and switch."
+  },
+  {
+    "class_name": "BONDMissingPortsAlertClass",
+    "file": "bond.py",
+    "title": "BOND Interface references missing ports",
+    "severity": "CRITICAL",
+    "category": "NETWORK",
+    "text": "BOND Interface %(name)s references missing ports %(missing)s."
+  },
+  {
+    "class_name": "NTPHealthCheckAlertClass",
+    "file": "ntp.py",
+    "title": "NTP Health Check Failed",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "NTP health check failed - %(reason)s"
+  },
+  {
+    "class_name": "CertificateIsExpiringAlertClass",
+    "file": "certificates.py",
+    "title": "Certificate Is Expiring",
+    "severity": "NOTICE",
+    "category": "CERTIFICATES",
+    "text": "Certificate %(name)r is expiring within %(days)d days."
+  },
+  {
+    "class_name": "CertificateIsExpiringSoonAlertClass",
+    "file": "certificates.py",
+    "title": "Certificate Is Expiring Soon",
+    "severity": "WARNING",
+    "category": "CERTIFICATES",
+    "text": "Certificate %(name)r is expiring within %(days)d days."
+  },
+  {
+    "class_name": "CertificateExpiredAlertClass",
+    "file": "certificates.py",
+    "title": "Certificate Has Expired",
+    "severity": "CRITICAL",
+    "category": "CERTIFICATES",
+    "text": "Certificate %(name)r has expired."
+  },
+  {
+    "class_name": "CertificateParsingFailedAlertClass",
+    "file": "certificates.py",
+    "title": "Certificate Parsing Failed",
+    "severity": "WARNING",
+    "category": "CERTIFICATES",
+    "text": "Failed to parse %(type)s %(name)r."
+  },
+  {
+    "class_name": "CertificateRevokedAlertClass",
+    "file": "certificates.py",
+    "title": "Certificate Revoked",
+    "severity": "CRITICAL",
+    "category": "CERTIFICATES",
+    "text": "%(service)s %(type)s has been revoked. Please replace the certificate immediately."
+  },
+  {
+    "class_name": "SmartdAlertClass",
+    "file": "smartd.py",
+    "title": "smartd Is Not Running",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "smartd is not running."
+  },
+  {
+    "class_name": "IPADomainBindAlertClass",
+    "file": "ipa.py",
+    "title": "IPA Domain Connection Is Not Healthy",
+    "severity": "WARNING",
+    "category": "DIRECTORY_SERVICE",
+    "text": "%(err)s."
+  },
+  {
+    "class_name": "AdminSessionAlertClass",
+    "file": "auth.py",
+    "title": "Administrator account activity",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "The root or default system administrator account was used to authenticate"
+  },
+  {
+    "class_name": "APIFailedLoginAlertClass",
+    "file": "auth.py",
+    "title": "API Login Failures",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": ""
+  },
+  {
+    "class_name": "SSHLoginFailuresAlertClass",
+    "file": "ssh_login_failures.py",
+    "title": "SSH Login Failures",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "%(count)d SSH login failures in the last 24 hours:\\n%(failures)s"
+  },
+  {
+    "class_name": "ActiveDirectoryDomainBindAlertClass",
+    "file": "active_directory.py",
+    "title": "Active Directory Bind Is Not Healthy",
+    "severity": "WARNING",
+    "category": "DIRECTORY_SERVICE",
+    "text": "%(wberr)s."
+  },
+  {
+    "class_name": "ActiveDirectoryDomainHealthAlertClass",
+    "file": "active_directory.py",
+    "title": "Active Directory Domain Validation Failed",
+    "severity": "WARNING",
+    "category": "DIRECTORY_SERVICE",
+    "text": "Domain validation failed with error: %(verrs)s"
+  },
+  {
+    "class_name": "MemoryErrorsAlertClass",
+    "file": "memory_errors.py",
+    "title": "Uncorrected Memory Errors Detected",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "%(count)d total uncorrected errors detected for %(loc)s."
+  },
+  {
+    "class_name": "MemorySizeMismatchAlertClass",
+    "file": "memory_errors.py",
+    "title": "Memory Size Mismatch Detected",
+    "severity": "WARNING",
+    "category": "HARDWARE",
+    "text": "Memory size on this controller %(r1)s doesn\\"
+  },
+  {
+    "class_name": "ProactiveSupportAlertClass",
+    "file": "proactive_support.py",
+    "title": "Proactive Support Is Not Configured",
+    "severity": "WARNING",
+    "category": "SYSTEM",
+    "text": "%s"
+  },
+  {
+    "class_name": "HasUpdateAlertClass",
+    "file": "update.py",
+    "title": "Update Available",
+    "severity": "INFO",
+    "category": "SYSTEM",
+    "text": "A system update is available. Go to System \u2192 Update to download and apply the update."
+  }
+]

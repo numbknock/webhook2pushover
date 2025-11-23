@@ -2,11 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY app.py .
+COPY alert_data/truenas_alert_catalog.json /app/alert_catalog.json
 
-COPY app/ /app/
+RUN pip install flask requests
 
-EXPOSE 5001
+ENV ALERT_CATALOG=/app/alert_catalog.json
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "app:app"]
+CMD ["python3", "app.py"]
