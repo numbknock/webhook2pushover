@@ -2,6 +2,11 @@
 
 Small Flask service that accepts a webhook payload (built for TrueNAS alerts) and forwards a formatted notification to Pushover. Runs in Docker with Gunicorn, logs to stdout and `/logs/webhook.log`, and maps TrueNAS severities to Pushover priorities automatically.
 
+## Warning
+- This service is experimental and may change without notice.
+- Do not use in production without your own testing.
+- Keep your Pushover tokens secret; never commit them.
+
 ## How it works
 - Exposes a single endpoint: `POST /webhook` with JSON `{ "text": "<alert body>" }`.
 - Cleans and parses the incoming text to extract host, severity, summary, and timestamp.
@@ -53,3 +58,12 @@ python app/app.py      # serves on http://0.0.0.0:5001
 ## Notes
 - Only the `text` field of the JSON payload is used; other fields are ignored.
 - Priority-2 alerts automatically set `retry=30` seconds and `expire=1800` seconds to satisfy Pushover's emergency policy.
+
+## Known Issues
+- Multi-alert messages are not handled correctly.
+- Logging is basic and may expose sensitive data—avoid running in production without sanitization.
+- No rate limiting: high request volume may overwhelm downstream services.
+
+## TO DO
+- Web interface to manage mappings, enable/disable alerts, manage entry- and endpoints etc. 
+- Change networkport to env var. 
