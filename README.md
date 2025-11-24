@@ -13,7 +13,7 @@ Small Flask service that accepts a webhook payload (built for TrueNAS alerts) an
 - Converts TrueNAS severity to Pushover priority (`INFO:-1, NOTICE/WARNING:0, ERROR/CRITICAL:1, ALERT/EMERGENCY:2`).
 - Bundles low-severity alerts by category and sends ERROR+ items individually, always including full alert text.
 - Sends the alert to Pushover with optional sound and retry/expire for priority-2 messages.
-- Logs every request/decision to stdout and a rotating log file at `${LOG_DIR:-/logs}/webhook.log`.
+- Logs every request/decision to stdout and a rotating log file at `${LOG_DIR:-/logs}/webhook.log`. Full raw HTTP requests can be captured to `${LOG_DIR:-/logs}/webhook_raw.log` when `DEBUG=true`.
 
 ## Run with Docker
 Build locally:
@@ -41,6 +41,7 @@ The GitHub Actions workflow builds and pushes `ghcr.io/<repo-owner>/webhook2push
 - `PUSHOVER_SOUND` (optional): Pushover sound name.
 - `LOG_DIR` (optional): Directory for `webhook.log` (default `/logs`).
 - `PORT` (optional): Port the webhook listens on (default `5001`).
+- `DEBUG` (optional): Set to `true` to log full raw HTTP requests to `webhook_raw.log` (default `false`).
 
 ## Send a test
 ```sh
@@ -65,7 +66,6 @@ python app/app.py      # serves on http://0.0.0.0:5001
 ## Known Issues
 - Logging is basic and may expose sensitive data; avoid running in production without sanitization.
 - No rate limiting: high request volume may overwhelm downstream services.
-- Incoming raw webhook bodies are also logged to `webhook_raw.log` in `LOG_DIR`.
 
 ## TO DO
 - Web interface to manage mappings, enable/disable alerts, manage entry- and endpoints etc. 

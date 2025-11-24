@@ -17,10 +17,12 @@ PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
 PUSHOVER_USER = os.getenv("PUSHOVER_USER")
 PUSHOVER_SOUND = os.getenv("PUSHOVER_SOUND")  # optional
 ALERT_CATALOG_PATH = os.getenv("ALERT_CATALOG", "/app/alert_catalog.json")
-RAW_LOGFILE = os.path.join(LOGDIR, "webhook_raw.log")
+DEBUG_MODE = os.getenv("DEBUG", "false").lower() == "true"
+
 
 os.makedirs(LOGDIR, exist_ok=True)
 LOGFILE = os.path.join(LOGDIR, "webhook.log")
+RAW_LOGFILE = os.path.join(LOGDIR, "webhook_raw.log")
 
 # ----------------------------------------------------------
 # Load TrueNAS Alert Catalog (Shipped Inside Container)
@@ -51,8 +53,7 @@ PRIORITY_MAP = {
     "EMERGENCY": 2,
 }
 
-BORDER = "=" * 58
-
+BORDER = "=" * 25
 
 # ----------------------------------------------------------
 # Logging Helpers
@@ -72,11 +73,22 @@ def debug(msg: str):
     log(f"[DEBUG] {msg}")
 
 
-def log_raw_payload(raw_body: str):
+def log_raw_request(req, raw_body: str):
     timestamp = dt.datetime.now().isoformat(timespec="seconds")
+    path = req.full_path if hasattr(req, "full_path") else req.path
+    start_line = f"{req.method} {path}".rstrip("?")
+    headers = "\n".join([f"{k}: {v}" for k, v in req.headers.items()])
+    entry = "\n".join([
+        f"[{timestamp}] RAW REQUEST",
+        start_line,
+        headers,
+        "",
+        raw_body,
+        "",
+    ])
     try:
         with open(RAW_LOGFILE, "a") as f:
-            f.write(f"[{timestamp}] {raw_body}\n")
+            f.write(entry)
     except Exception:
         pass
 
@@ -361,8 +373,9 @@ def webhook():
             log("ERROR: Missing Pushover credentials.")
             return {"status": "error", "details": "Missing pushover credentials"}, 500
 
-        raw_body = request.get_data(as_text=True) or ""
-        log_raw_payload(raw_body)
+        raw_body = request.get_data(cache=True, as_text=True) or ""
+        if DEBUG_MODE:
+            log_raw_request(request, raw_body)
 
         raw = request.get_json(silent=True) or {}
         text_raw = (raw.get("text") or "").strip()
@@ -444,5 +457,3 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=port)
     log("Starting webhook2pushover service...")
     
-
-
