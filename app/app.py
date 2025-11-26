@@ -19,26 +19,84 @@ PUSHOVER_SOUND = os.getenv("PUSHOVER_SOUND")  # optional
 ALERT_CATALOG_PATH = os.getenv("ALERT_CATALOG", "/app/alert_catalog.json")
 DEBUG_MODE = os.getenv("DEBUG", "false").lower() == "true"
 
-
 os.makedirs(LOGDIR, exist_ok=True)
 LOGFILE = os.path.join(LOGDIR, "webhook.log")
 RAW_LOGFILE = os.path.join(LOGDIR, "webhook_raw.log")
 
 # ----------------------------------------------------------
 # Load TrueNAS Alert Catalog (Shipped Inside Container)
+# Expected entry structure:
+#   {
+#     "class_name": "...",
+#     "file": "...",
+#     "title": "...",
+#     "severity": "WARNING",
+#     "category": "SYSTEM",
+#     "text": "...."
+#   }
 # ----------------------------------------------------------
 alert_catalog = {}
+pattern_index = []  # list of { "regex": re.Pattern, "meta": meta }
+
+def template_to_regex(template: str) -> str:
+    """
+    Convert a TrueNAS alert text template into a regex that can match bullet lines.
+    Replaces variable placeholders with .+? wildcards.
+    """
+    # Only use first line of template (most bullets are single-line summary)
+    first_line = template.splitlines()[0].strip()
+    if not first_line:
+        first_line = template.strip()
+
+    # Escape everything first
+    pat = re.escape(first_line)
+
+    # Replace %-format placeholders like %(name)s or %(count)d
+    pat = re.sub(r"%\\\([^)]+\\\)[sd]", r".+?", pat)
+    pat = pat.replace("%s", ".+?")
+    pat = pat.replace("%d", r"\d+")
+
+    # Replace {name} style placeholders (f-strings or .format)
+    pat = re.sub(r"\\\{[^}]+\\\}", ".+?", pat)
+
+    # Allow some flexibility around quotes and spaces
+    # (most bullet lines differ only in the variable bits)
+    return pat
+
+def build_pattern_index():
+    global pattern_index
+    pattern_index = []
+
+    for meta in alert_catalog.values():
+        text = meta.get("text")
+        if not text:
+            continue
+
+        try:
+            pattern_str = template_to_regex(text)
+            if not pattern_str:
+                continue
+            regex = re.compile(pattern_str, re.IGNORECASE | re.DOTALL)
+            pattern_index.append({"regex": regex, "meta": meta})
+        except re.error:
+            # If pattern cannot compile, skip it
+            continue
+
+    print(f"[INIT] Built pattern index with {len(pattern_index)} patterns from catalog.")
 
 try:
     with open(ALERT_CATALOG_PATH, "r") as f:
-        for entry in json.load(f):
+        raw_entries = json.load(f)
+        for entry in raw_entries:
             title = entry.get("title")
             if title:
                 alert_catalog[title.strip()] = entry
     print(f"[INIT] Loaded {len(alert_catalog)} alert definitions from catalog.")
+    build_pattern_index()
 except Exception as e:
     print(f"[INIT] ERROR loading alert catalog: {e}")
     alert_catalog = {}
+    pattern_index = []
 
 # ----------------------------------------------------------
 # Pushover Priority Mapping
@@ -68,10 +126,8 @@ def log(msg: str):
     except Exception:
         pass
 
-
 def debug(msg: str):
     log(f"[DEBUG] {msg}")
-
 
 def log_raw_request(req, raw_body: str):
     timestamp = dt.datetime.now().isoformat(timespec="seconds")
@@ -92,7 +148,6 @@ def log_raw_request(req, raw_body: str):
     except Exception:
         pass
 
-
 # ----------------------------------------------------------
 # Parsing Helpers
 # ----------------------------------------------------------
@@ -101,7 +156,6 @@ def extract_hostname(text: str) -> str:
     hostname = m.group(1) if m else "TrueNAS"
     debug(f"Extracted hostname: {hostname}")
     return hostname
-
 
 def clean_message(text: str) -> str:
     debug("Cleaning message formatting...")
@@ -112,9 +166,8 @@ def clean_message(text: str) -> str:
     debug(f"Cleaned message:\n{cleaned}")
     return cleaned
 
-
 # ----------------------------------------------------------
-# Bullet extraction
+# Bullet & Section Parsing (Digest Handling)
 # ----------------------------------------------------------
 def extract_bullets(clean_text: str):
     bullets = []
@@ -127,63 +180,6 @@ def extract_bullets(clean_text: str):
         elif s.startswith("- "):
             bullets.append(s[2:].strip())
     return bullets
-
-
-# ----------------------------------------------------------
-# UNKNOWN ALERT HANDLING WITH FUZZY MATCH
-# ----------------------------------------------------------
-def detect_alert_from_catalog(clean_text: str):
-    """
-    Try to match incoming text to an official TrueNAS alert title.
-    Uses:
-      - direct title matching
-      - fuzzy similarity match
-    """
-    # Direct lookup
-    for title, meta in alert_catalog.items():
-        if title in clean_text:
-            debug(f"Matched catalog alert: {title}")
-            return meta, False
-
-    # Fuzzy match
-    best_title = None
-    best_score = 0.0
-
-    for title in alert_catalog.keys():
-        score = difflib.SequenceMatcher(None, title.lower(), clean_text.lower()).ratio()
-        if score > best_score:
-            best_score = score
-            best_title = title
-
-    # If fuzzy match is decent, treat as "near match"
-    if best_score > 0.65:
-        log(f"UNKNOWN ALERT: No exact match. Best guess: '{best_title}' (score={best_score:.2f})")
-        return {
-            "title": f"Unknown Alert (closest: {best_title})",
-            "severity": "NOTICE",
-            "category": "GENERAL",
-        }, True
-
-    # Fully unknown
-    log("UNKNOWN ALERT: No match in catalog, severity default NOTICE")
-    return {
-        "title": "Unknown Alert",
-        "severity": "NOTICE",
-        "category": "GENERAL",
-    }, True
-
-
-# ----------------------------------------------------------
-# Summary extraction
-# ----------------------------------------------------------
-def extract_summary(clean_text: str) -> str:
-    lines = [ln.strip() for ln in clean_text.split("\n") if ln.strip()]
-    for ln in lines:
-        if not ln.lower().startswith("truenas @"):
-            debug(f"Extracted summary: {ln}")
-            return ln
-    return "Alert received"
-
 
 def parse_alert_sections(clean_text: str):
     """
@@ -207,6 +203,9 @@ def parse_alert_sections(clean_text: str):
         if lowered in {"current alerts", "current alert"}:
             section = "current"
             continue
+        if lowered in {"the following alert has been cleared", "the following alerts have been cleared"}:
+            section = "cleared"
+            continue
 
         bullet = None
         for prefix in ("* ", "- "):
@@ -219,7 +218,7 @@ def parse_alert_sections(clean_text: str):
 
         if section == "new":
             new_alerts.append(bullet)
-        elif section == "current":
+        elif section in ("current", "cleared"):
             current_alerts.append(bullet)
         else:
             unscoped.append(bullet)
@@ -232,14 +231,80 @@ def parse_alert_sections(clean_text: str):
 
     return new_alerts, current_alerts
 
+# ----------------------------------------------------------
+# Catalog Matching & Unknown Handling
+# ----------------------------------------------------------
+def detect_alert_from_catalog_by_pattern(text: str):
+    """
+    Try to match using pattern_index built from alert 'text' templates.
+    """
+    for entry in pattern_index:
+        if entry["regex"].search(text):
+            meta = entry["meta"]
+            debug(f"Pattern match for item: resolved to title '{meta.get('title')}'")
+            return meta, False
+    return None, False
+
+def detect_alert_from_catalog_by_title(clean_text: str):
+    """
+    Fallback: Try to match incoming text to an official TrueNAS alert title.
+    Uses:
+      - direct title matching
+      - fuzzy similarity match
+    """
+    # Direct lookup by title substring
+    for title, meta in alert_catalog.items():
+        if title in clean_text:
+            debug(f"Matched catalog alert by title: {title}")
+            return meta, False
+
+    # Fuzzy match over titles
+    best_title = None
+    best_score = 0.0
+
+    for title in alert_catalog.keys():
+        score = difflib.SequenceMatcher(None, title.lower(), clean_text.lower()).ratio()
+        if score > best_score:
+            best_score = score
+            best_title = title
+
+    if best_score > 0.65 and best_title:
+        log(f"UNKNOWN ALERT: No exact match. Best guess by title: '{best_title}' (score={best_score:.2f})")
+        return {
+            "title": f"Unknown Alert (closest: {best_title})",
+            "severity": "NOTICE",
+            "category": "GENERAL",
+        }, True
+
+    # Fully unknown
+    log("UNKNOWN ALERT: No match in catalog, severity default NOTICE")
+    return {
+        "title": "Unknown Alert",
+        "severity": "NOTICE",
+        "category": "GENERAL",
+    }, True
+
+def resolve_item_meta(item_text: str):
+    """
+    Resolve an individual bullet line to a catalog entry.
+    Order:
+      1. Pattern-based match (from 'text' templates)
+      2. Title/fuzzy-based match on the line itself
+    """
+    # 1. Pattern-based
+    meta, is_unknown = detect_alert_from_catalog_by_pattern(item_text)
+    if meta is not None:
+        return meta, False
+
+    # 2. Fallback: title/fuzzy on the item text
+    return detect_alert_from_catalog_by_title(item_text)
 
 def classify_alert_item(item_text: str, section: str):
     """
     Resolve a single bullet line against the TrueNAS alert catalog.
-    Falls back to fuzzy catalog match and then unknown.
     """
-    meta, is_unknown = detect_alert_from_catalog(item_text)
-    meta = dict(meta)
+    meta, is_unknown = resolve_item_meta(item_text)
+    meta = dict(meta)  # copy so we don't mutate global catalog
     meta["original"] = item_text
     meta["is_unknown"] = is_unknown
     meta["section"] = section
@@ -247,7 +312,9 @@ def classify_alert_item(item_text: str, section: str):
         meta["title"] = item_text
     return meta
 
-
+# ----------------------------------------------------------
+# Summary & Severity Helpers
+# ----------------------------------------------------------
 def summarize_titles(items):
     names = [itm.get("title") or itm.get("original") for itm in items]
     if not names:
@@ -256,7 +323,6 @@ def summarize_titles(items):
     if len(names) > 3:
         summary += f", and {len(names) - 3} more"
     return summary
-
 
 def highest_severity(items, fallback: str):
     best_severity = fallback
@@ -269,7 +335,6 @@ def highest_severity(items, fallback: str):
             best_severity = sev
     return best_severity
 
-
 def derive_category(items, fallback: str):
     categories = {itm.get("category") for itm in items if itm.get("category")}
     if not categories:
@@ -278,12 +343,48 @@ def derive_category(items, fallback: str):
         return categories.pop()
     return "MULTIPLE"
 
-
 def build_summary(severity: str, category: str, count: int) -> str:
     sev = (severity or "NOTICE").title()
     cat = (category or "GENERAL").capitalize()
     return f"{sev}: {cat} Alerts ({count})"
 
+# ----------------------------------------------------------
+# Pushover Sending + Enterprise Formatting
+# ----------------------------------------------------------
+def format_enterprise(summary: str, severity: str, hostname: str, category: str, timestamp_utc: str,
+                      new_alerts=None, current_alerts=None):
+    new_alerts = new_alerts or []
+    current_alerts = current_alerts or []
+    section_category = category.capitalize() if category else "General"
+
+    lines = [
+        BORDER,
+        "ALERT DETAILS",
+        BORDER,
+        f"Summary:       {summary}",
+        f"Severity:      {severity}",
+        f"Category:      {section_category}",
+        f"Host:          {hostname}",
+        f"Timestamp:     {timestamp_utc} UTC",
+        "Source:        TrueNAS -> webhook2pushover",
+        BORDER,
+    ]
+
+    if new_alerts:
+        lines.append("New Alerts:")
+        for itm in new_alerts:
+            lines.append(f"- {itm.get('original') or itm.get('title')}")
+        lines.append(BORDER)
+
+    if current_alerts:
+        lines.append("Current Alerts:")
+        for itm in current_alerts:
+            lines.append(f"- {itm.get('original') or itm.get('title')}")
+        lines.append(BORDER)
+
+    formatted = "\n".join(lines)
+    debug("Formatted enterprise message:\n" + formatted)
+    return formatted
 
 def send_pushover_message(summary: str, severity: str, category: str, hostname: str, timestamp_utc: str,
                           new_alerts, current_alerts, is_unknown: bool):
@@ -321,48 +422,8 @@ def send_pushover_message(summary: str, severity: str, category: str, hostname: 
     log("Pushover alert sent successfully.")
     return True
 
-
 # ----------------------------------------------------------
-# Enterprise formatting
-# ----------------------------------------------------------
-def format_enterprise(summary: str, severity: str, hostname: str, category: str, timestamp_utc: str,
-                      new_alerts=None, current_alerts=None):
-    new_alerts = new_alerts or []
-    current_alerts = current_alerts or []
-    section_category = category.capitalize() if category else "General"
-
-    lines = [
-        BORDER,
-        "ALERT DETAILS",
-        BORDER,
-        f"Summary:       {summary}",
-        f"Severity:      {severity}",
-        f"Category:      {section_category}",
-        f"Host:          {hostname}",
-        f"Timestamp:     {timestamp_utc} UTC",
-        "Source:        TrueNAS -> webhook2pushover",
-        BORDER,
-    ]
-
-    if new_alerts:
-        lines.append("New Alerts:")
-        for itm in new_alerts:
-            lines.append(f"- {itm.get('original') or itm.get('title')}")
-        lines.append(BORDER)
-
-    if current_alerts:
-        lines.append("Current Alerts:")
-        for itm in current_alerts:
-            lines.append(f"- {itm.get('original') or itm.get('title')}")
-        lines.append(BORDER)
-
-    formatted = "\n".join(lines)
-    debug("Formatted enterprise message:\n" + formatted)
-    return formatted
-
-
-# ----------------------------------------------------------
-# Webhook Endpoint
+# Webhook Endpoint (Hybrid Mode C)
 # ----------------------------------------------------------
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -395,12 +456,16 @@ def webhook():
         responses = []
 
         if combined:
-            # High-severity items (ERROR and above) are sent individually
-            high_items = [itm for itm in combined if PRIORITY_MAP.get(itm.get("severity", "NOTICE"), -1) >= PRIORITY_MAP["ERROR"]]
+            # High-severity items (ERROR and above) are sent individually (Hybrid C)
+            high_items = [
+                itm for itm in combined
+                if PRIORITY_MAP.get(itm.get("severity", "NOTICE"), -1) >= PRIORITY_MAP["ERROR"]
+            ]
             low_items = [itm for itm in combined if itm not in high_items]
 
             timestamp_utc = dt.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
+            # Send high severity individually
             for itm in high_items:
                 severity = itm.get("severity", "ERROR")
                 category = itm.get("category", "GENERAL")
@@ -429,7 +494,8 @@ def webhook():
                                            new_list, current_list, is_unknown)
                 responses.append(ok)
         else:
-            meta, is_unknown = detect_alert_from_catalog(cleaned)
+            # No digest structure → treat entire message as a single alert
+            meta, is_unknown = detect_alert_from_catalog_by_title(cleaned)
             severity = meta.get("severity", "NOTICE")
             category = meta.get("category", "GENERAL")
             summary = build_summary(severity, category, 1)
@@ -441,19 +507,21 @@ def webhook():
 
         if all(responses):
             return {"status": "ok", "sent": len(responses)}, 200
-        return {"status": "partial_failure", "sent": len([r for r in responses if r]), "errors": len([r for r in responses if not r])}, 502
+        return {
+            "status": "partial_failure",
+            "sent": len([r for r in responses if r]),
+            "errors": len([r for r in responses if not r])
+        }, 502
 
     except Exception as e:
         log(f"EXCEPTION: {e}")
         debug(traceback.format_exc())
         return {"status": "error", "exception": str(e)}, 500
 
-
 # ----------------------------------------------------------
 # Run
 # ----------------------------------------------------------
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5001"))
-    app.run(host="0.0.0.0", port=port)
     log("Starting webhook2pushover service...")
-    
+    app.run(host="0.0.0.0", port=port)
